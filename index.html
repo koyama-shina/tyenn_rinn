@@ -88,10 +88,9 @@ function buildMarkov(words) {
 // =====================
 // 文章生成
 // =====================
-function generateSentence(chain, length = 15) {
+function generateSentence(chain, length = 8) {
   const keys = Object.keys(chain);
 
-  // 文頭っぽい単語を優先
   const startWords = ["今日","いや","まぁ","てか","なんか"];
   let word = startWords[Math.floor(Math.random() * startWords.length)];
 
@@ -105,10 +104,25 @@ function generateSentence(chain, length = 15) {
     if (!chain[word]) break;
 
     const nextWords = chain[word];
-    word = nextWords[Math.floor(Math.random() * nextWords.length)];
+
+    // 👇 ランダム性強化
+    if (Math.random() < 0.25) {
+      word = keys[Math.floor(Math.random() * keys.length)];
+    } else {
+      word = nextWords[Math.floor(Math.random() * nextWords.length)];
+    }
+
     result.push(word);
+
+    // 👇 早め終了
+    if (Math.random() < 0.2) break;
   }
 
+  const endings = ["。","…","だわ","でしょ","なんよ"];
+  result.push(endings[Math.floor(Math.random() * endings.length)]);
+
+  return result.join("");
+}
   // 文末をそれっぽくする
   const endings = ["。","…","だわ","でしょ","なんよ"];
   result.push(endings[Math.floor(Math.random() * endings.length)]);
