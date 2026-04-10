@@ -14,8 +14,26 @@ body {
 
 button {
   padding: 10px 20px;
-  margin-top: 15px;
-  font-size: 16px;
+  margin: 5px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+#generateBtn {
+  background: #4CAF50;
+  color: white;
+}
+
+#shareBtn {
+  background: #5865F2;
+  color: white;
+}
+
+#copyBtn {
+  background: #333;
+  color: white;
 }
 
 #output {
@@ -31,16 +49,38 @@ img {
   max-width: 250px;
   border-radius: 10px;
 }
+
+details {
+  margin-top: 20px;
+}
+
+.history-item {
+  padding: 5px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.history-item:hover {
+  background: #f0f0f0;
+}
 </style>
 </head>
 <body>
 
 <h2></h2>
 
-<button onclick="generate()">それっぽい発言を生成</button>
+<button id="generateBtn" onclick="generate()">生成</button>
+<button id="shareBtn" onclick="shareText()">共有</button>
+<button id="copyBtn" onclick="copyText()">コピー</button>
 
 <div id="output">ボタンを押してください</div>
 <img id="photo" src="">
+
+<!-- 履歴 -->
+<details>
+  <summary>生成履歴（クリックで開く）</summary>
+  <div id="history" style="background:white;padding:10px;border-radius:10px;max-height:200px;overflow-y:auto;"></div>
+</details>
 
 <script>
 
@@ -58,72 +98,7 @@ const words = [
 ];
 
 // =====================
-// 画像（使わないなら消してOK）
-// =====================
-const images = [
-  "img1.png",
-  "img2.png",
-  <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title></title>
-
-<style>
-body {
-  font-family: sans-serif;
-  text-align: center;
-  background: #f5f5f5;
-  padding: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  margin-top: 15px;
-  font-size: 16px;
-}
-
-#output {
-  margin-top: 20px;
-  font-size: 1.4em;
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-}
-
-img {
-  margin-top: 20px;
-  max-width: 250px;
-  border-radius: 10px;
-}
-</style>
-</head>
-<body>
-
-<h2></h2>
-
-<button onclick="generate()">それっぽい発言を生成</button>
-
-<div id="output">ボタンを押してください</div>
-<img id="photo" src="">
-
-<script>
-
-// =====================
-// 単語辞書
-// =====================
-const words = [
-  "なんごとや","なんごとや","なんごとや","なんごとや","ニガ","は","差別用語","ちゃう","で","ニガ","って","いって","る","やつら","が","全員","レイシスト","や","で",
-  "ああ","すってん","ころりん","心","マザファカ","なり",
-  "これ","だから","中国人","は",
-  "ちょっと","俺","野糞","行って","きま","す",
-  "いや","それ","わかめ","やない","かーい",
-  "俺","ヴァロ","して","く","る",
-  "破道","の","九十","ニガ","ニガ","ニガ","棺",
-];
-
-// =====================
-// 画像（使わないなら消してOK）
+// 画像（png 4枚）
 // =====================
 const images = [
   "img1.png",
@@ -133,19 +108,21 @@ const images = [
 ];
 
 // =====================
+// 履歴
+// =====================
+let historyList = JSON.parse(localStorage.getItem("history") || "[]");
+
+// =====================
 // マルコフ
 // =====================
 function buildMarkov(words) {
   const chain = {};
-
   for (let i = 0; i < words.length - 1; i++) {
     const w = words[i];
     const next = words[i + 1];
-
     if (!chain[w]) chain[w] = [];
     chain[w].push(next);
   }
-
   return chain;
 }
 
@@ -154,7 +131,6 @@ function buildMarkov(words) {
 // =====================
 function generateSentence(chain, length = 8) {
   const keys = Object.keys(chain);
-
   let word = keys[Math.floor(Math.random() * keys.length)];
   let result = [word];
 
@@ -189,82 +165,67 @@ function generate() {
 
   document.getElementById("output").innerText = sentence;
 
-  // 画像（使う場合のみ）
-  if (images.length > 0) {
-    const img = images[Math.floor(Math.random() * images.length)];
-    document.getElementById("photo").src = img;
-  }
-}
+  // 画像ランダム
+  const img = images[Math.floor(Math.random() * images.length)];
+  document.getElementById("photo").src = img;
 
-</script>
+  // 履歴追加
+  historyList.unshift(sentence);
+  if (historyList.length > 30) historyList.pop();
 
-</body>
-</html>
-];
+  localStorage.setItem("history", JSON.stringify(historyList));
 
-// =====================
-// マルコフ
-// =====================
-function buildMarkov(words) {
-  const chain = {};
-
-  for (let i = 0; i < words.length - 1; i++) {
-    const w = words[i];
-    const next = words[i + 1];
-
-    if (!chain[w]) chain[w] = [];
-    chain[w].push(next);
-  }
-
-  return chain;
+  updateHistory();
 }
 
 // =====================
-// 生成
+// 履歴表示
 // =====================
-function generateSentence(chain, length = 8) {
-  const keys = Object.keys(chain);
+function updateHistory() {
+  const historyDiv = document.getElementById("history");
 
-  let word = keys[Math.floor(Math.random() * keys.length)];
-  let result = [word];
-
-  for (let i = 0; i < length; i++) {
-    if (!chain[word]) break;
-
-    const nextWords = chain[word];
-
-    if (Math.random() < 0.25) {
-      word = keys[Math.floor(Math.random() * keys.length)];
-    } else {
-      word = nextWords[Math.floor(Math.random() * nextWords.length)];
-    }
-
-    result.push(word);
-
-    if (Math.random() < 0.2) break;
-  }
-
-  const endings = ["。","…","だわ","でしょ","なんよ"];
-  result.push(endings[Math.floor(Math.random() * endings.length)]);
-
-  return result.join("");
+  historyDiv.innerHTML = historyList
+    .map(text => `<div class="history-item" onclick="reuse('${text}')">・${text}</div>`)
+    .join("");
 }
 
 // =====================
-// 実行
+// 再利用
 // =====================
-function generate() {
-  const chain = buildMarkov(words);
-  const sentence = generateSentence(chain);
+function reuse(text) {
+  document.getElementById("output").innerText = text;
+}
 
-  document.getElementById("output").innerText = sentence;
+// =====================
+// 共有（スマホ）
+// =====================
+function shareText() {
+  const text = document.getElementById("output").innerText;
 
-  // 画像（使う場合のみ）
-  if (images.length > 0) {
-    const img = images[Math.floor(Math.random() * images.length)];
-    document.getElementById("photo").src = img;
+  if (navigator.share) {
+    navigator.share({
+      title: "語録ジェネレーター",
+      text: text,
+      url: location.href
+    });
+  } else {
+    alert("この端末は共有に対応していません");
   }
 }
+
+// =====================
+// コピー（PC）
+// =====================
+function copyText() {
+  const text = document.getElementById("output").innerText;
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert("コピーしました！");
+  });
+}
+
+// 初期表示
+updateHistory();
 
 </script>
 
