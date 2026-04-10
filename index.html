@@ -27,6 +27,7 @@ button {
 #generateBtn { background: #4CAF50; color: white; }
 #shareBtn { background: #5865F2; color: white; }
 #copyBtn { background: #333; color: white; }
+#downloadBtn { background: #ff9800; color: white; }
 
 #captureArea {
   margin-top: 20px;
@@ -68,6 +69,7 @@ details {
 <button id="generateBtn" onclick="generate()">生成</button>
 <button id="shareBtn" onclick="shareImage()">画像共有</button>
 <button id="copyBtn" onclick="copyImage()">画像コピー</button>
+<button id="downloadBtn" onclick="downloadImage()">画像ダウンロード</button>
 
 <!-- キャプチャ対象 -->
 <div id="captureArea">
@@ -168,7 +170,7 @@ function generate() {
   const img = images[Math.floor(Math.random() * images.length)];
   document.getElementById("photo").src = img;
 
-  // 履歴
+  // 履歴保存
   historyList.unshift(sentence);
   if (historyList.length > 30) historyList.pop();
 
@@ -236,7 +238,21 @@ async function shareImage() {
   });
 }
 
-// 初期化
+// =====================
+// 画像ダウンロード（←追加部分）
+// =====================
+async function downloadImage() {
+  const area = document.getElementById("captureArea");
+
+  const canvas = await html2canvas(area);
+  const link = document.createElement("a");
+
+  link.download = "goroku.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+// 初期表示
 updateHistory();
 
 </script>
