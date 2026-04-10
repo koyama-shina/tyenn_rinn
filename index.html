@@ -60,10 +60,147 @@ const words = [
 // =====================
 // 画像（使わないなら消してOK）
 // =====================
-//const images = [
-//  "img1.jpg",
-//  "img2.jpg"
-//];
+const images = [
+  "img1.png",
+  "img2.png",
+  <!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title></title>
+
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+#output {
+  margin-top: 20px;
+  font-size: 1.4em;
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+img {
+  margin-top: 20px;
+  max-width: 250px;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<h2></h2>
+
+<button onclick="generate()">それっぽい発言を生成</button>
+
+<div id="output">ボタンを押してください</div>
+<img id="photo" src="">
+
+<script>
+
+// =====================
+// 単語辞書
+// =====================
+const words = [
+  "なんごとや","なんごとや","なんごとや","なんごとや","ニガ","は","差別用語","ちゃう","で","ニガ","って","いって","る","やつら","が","全員","レイシスト","や","で",
+  "ああ","すってん","ころりん","心","マザファカ","なり",
+  "これ","だから","中国人","は",
+  "ちょっと","俺","野糞","行って","きま","す",
+  "いや","それ","わかめ","やない","かーい",
+  "俺","ヴァロ","して","く","る",
+  "破道","の","九十","ニガ","ニガ","ニガ","棺",
+];
+
+// =====================
+// 画像（使わないなら消してOK）
+// =====================
+const images = [
+  "img1.png",
+  "img2.png",
+  "img3.png",
+  "img4.png"
+];
+
+// =====================
+// マルコフ
+// =====================
+function buildMarkov(words) {
+  const chain = {};
+
+  for (let i = 0; i < words.length - 1; i++) {
+    const w = words[i];
+    const next = words[i + 1];
+
+    if (!chain[w]) chain[w] = [];
+    chain[w].push(next);
+  }
+
+  return chain;
+}
+
+// =====================
+// 生成
+// =====================
+function generateSentence(chain, length = 8) {
+  const keys = Object.keys(chain);
+
+  let word = keys[Math.floor(Math.random() * keys.length)];
+  let result = [word];
+
+  for (let i = 0; i < length; i++) {
+    if (!chain[word]) break;
+
+    const nextWords = chain[word];
+
+    if (Math.random() < 0.25) {
+      word = keys[Math.floor(Math.random() * keys.length)];
+    } else {
+      word = nextWords[Math.floor(Math.random() * nextWords.length)];
+    }
+
+    result.push(word);
+
+    if (Math.random() < 0.2) break;
+  }
+
+  const endings = ["。","…","だわ","でしょ","なんよ"];
+  result.push(endings[Math.floor(Math.random() * endings.length)]);
+
+  return result.join("");
+}
+
+// =====================
+// 実行
+// =====================
+function generate() {
+  const chain = buildMarkov(words);
+  const sentence = generateSentence(chain);
+
+  document.getElementById("output").innerText = sentence;
+
+  // 画像（使う場合のみ）
+  if (images.length > 0) {
+    const img = images[Math.floor(Math.random() * images.length)];
+    document.getElementById("photo").src = img;
+  }
+}
+
+</script>
+
+</body>
+</html>
+];
 
 // =====================
 // マルコフ
