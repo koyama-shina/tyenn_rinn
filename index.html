@@ -2,77 +2,136 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title></title>
-<script src="https://unpkg.com/kuromoji@0.1.2/dist/kuromoji.js"></script>
+<title>語録ジェネレーター</title>
+
 <style>
-body { font-family: sans-serif; text-align: center; padding: 20px; }
-textarea { width: 90%; height: 120px; }
-button { padding: 10px 20px; margin-top: 10px; }
-#output { margin-top: 20px; font-size: 1.2em; }
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+#output {
+  margin-top: 20px;
+  font-size: 1.4em;
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+img {
+  margin-top: 20px;
+  max-width: 250px;
+  border-radius: 10px;
+}
 </style>
 </head>
 <body>
 
-<h2></h2>
-<textarea id="inputText" placeholder="例：\n今日は眠い\nラーメン食べたい"></textarea><br>
-<button onclick="generate()">生成</button>
+<h2>友人語録ジェネレーター</h2>
 
-<div id="output">読み込み中...</div>
+<button onclick="generate()">それっぽい発言を生成</button>
+
+<div id="output">ボタンを押してください</div>
+<img id="photo" src="">
 
 <script>
-let tokenizer;
 
-// Kuromoji 初期化
-kuromoji.builder({
-  dicPath: "https://unpkg.com/kuromoji@0.1.2/dict/"
-}).build(function (err, t) {
-  tokenizer = t;
-  document.getElementById("output").innerText = "準備完了！";
-});
+// =====================
+// 👇 単語辞書（ここを増やすと精度UP）
+// =====================
+const words = [
+  "今日","は","マジで","やる気","が","ない",
+  "ラーメン","食べたい",
+  "いや","それ","違う","でしょ",
+  "なんか","眠い",
+  "まぁ","なんとか","なる",
+  "ワンチャン","ある",
+  "ちょっと","無理",
+  "あとで","やる",
+  "てか","それ","面白い",
+  "ほんと","それな",
+  "いや","無理","だわ"
+];
 
-function tokenize(text) {
-  return tokenizer.tokenize(text).map(t => t.surface_form);
-}
+// =====================
+// 👇 画像（同じフォルダに置く）
+// =====================
+const images = [
+  "img1.jpg",
+  "img2.jpg",
+  "img3.jpg"
+];
 
+// =====================
+// マルコフ連鎖構築
+// =====================
 function buildMarkov(words) {
   const chain = {};
+
   for (let i = 0; i < words.length - 1; i++) {
     const w = words[i];
     const next = words[i + 1];
+
     if (!chain[w]) chain[w] = [];
     chain[w].push(next);
   }
+
   return chain;
 }
 
-function generateSentence(chain, length = 20) {
+// =====================
+// 文章生成
+// =====================
+function generateSentence(chain, length = 15) {
   const keys = Object.keys(chain);
-  let word = keys[Math.floor(Math.random() * keys.length)];
+
+  // 文頭っぽい単語を優先
+  const startWords = ["今日","いや","まぁ","てか","なんか"];
+  let word = startWords[Math.floor(Math.random() * startWords.length)];
+
+  if (!chain[word]) {
+    word = keys[Math.floor(Math.random() * keys.length)];
+  }
+
   let result = [word];
 
   for (let i = 0; i < length; i++) {
     if (!chain[word]) break;
+
     const nextWords = chain[word];
     word = nextWords[Math.floor(Math.random() * nextWords.length)];
     result.push(word);
   }
 
+  // 文末をそれっぽくする
+  const endings = ["。","…","だわ","でしょ","なんよ"];
+  result.push(endings[Math.floor(Math.random() * endings.length)]);
+
   return result.join("");
 }
 
+// =====================
+// 実行
+// =====================
 function generate() {
-  if (!tokenizer) {
-    alert("まだ準備中です");
-    return;
-  }
-
-  const text = document.getElementById("inputText").value;
-  const words = tokenize(text);
   const chain = buildMarkov(words);
   const sentence = generateSentence(chain);
 
   document.getElementById("output").innerText = sentence;
+
+  // 画像ランダム表示
+  const img = images[Math.floor(Math.random() * images.length)];
+  document.getElementById("photo").src = img;
 }
+
 </script>
 
 </body>
