@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title></title>
 
+<!-- 画像化ライブラリ -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <style>
 body {
   font-family: sans-serif;
@@ -21,31 +24,24 @@ button {
   cursor: pointer;
 }
 
-#generateBtn {
-  background: #4CAF50;
-  color: white;
-}
+#generateBtn { background: #4CAF50; color: white; }
+#shareBtn { background: #5865F2; color: white; }
+#copyBtn { background: #333; color: white; }
 
-#shareBtn {
-  background: #5865F2;
-  color: white;
-}
-
-#copyBtn {
-  background: #333;
-  color: white;
-}
-
-#output {
+#captureArea {
   margin-top: 20px;
-  font-size: 1.4em;
+  display: inline-block;
   background: white;
   padding: 15px;
   border-radius: 10px;
 }
 
+#output {
+  font-size: 1.4em;
+}
+
 img {
-  margin-top: 20px;
+  margin-top: 10px;
   max-width: 250px;
   border-radius: 10px;
 }
@@ -70,11 +66,14 @@ details {
 <h2></h2>
 
 <button id="generateBtn" onclick="generate()">生成</button>
-<button id="shareBtn" onclick="shareText()">共有</button>
-<button id="copyBtn" onclick="copyText()">コピー</button>
+<button id="shareBtn" onclick="shareImage()">画像共有</button>
+<button id="copyBtn" onclick="copyImage()">画像コピー</button>
 
-<div id="output">ボタンを押してください</div>
-<img id="photo" src="">
+<!-- キャプチャ対象 -->
+<div id="captureArea">
+  <div id="output">ボタンを押してください</div>
+  <img id="photo" src="">
+</div>
 
 <!-- 履歴 -->
 <details>
@@ -169,7 +168,7 @@ function generate() {
   const img = images[Math.floor(Math.random() * images.length)];
   document.getElementById("photo").src = img;
 
-  // 履歴追加
+  // 履歴
   historyList.unshift(sentence);
   if (historyList.length > 30) historyList.pop();
 
@@ -197,34 +196,47 @@ function reuse(text) {
 }
 
 // =====================
-// 共有（スマホ）
+// 画像コピー
 // =====================
-function shareText() {
-  const text = document.getElementById("output").innerText;
+async function copyImage() {
+  const area = document.getElementById("captureArea");
 
-  if (navigator.share) {
-    navigator.share({
-      title: "語録ジェネレーター",
-      text: text,
-      url: location.href
-    });
-  } else {
-    alert("この端末は共有に対応していません");
-  }
-}
-
-// =====================
-// コピー（PC）
-// =====================
-function copyText() {
-  const text = document.getElementById("output").innerText;
-
-  navigator.clipboard.writeText(text).then(() => {
-    alert("コピーしました！");
+  const canvas = await html2canvas(area);
+  canvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob })
+      ]);
+      alert("画像としてコピーしました！");
+    } catch {
+      alert("このブラウザは画像コピー非対応です");
+    }
   });
 }
 
-// 初期表示
+// =====================
+// 画像共有
+// =====================
+async function shareImage() {
+  const area = document.getElementById("captureArea");
+
+  const canvas = await html2canvas(area);
+  canvas.toBlob(async (blob) => {
+
+    const file = new File([blob], "goroku.png", { type: "image/png" });
+
+    if (navigator.share) {
+      await navigator.share({
+        files: [file],
+        title: "語録ジェネレーター"
+      });
+    } else {
+      alert("この端末は画像共有に対応していません");
+    }
+  });
+}
+
+// 初期化
 updateHistory();
 
 </script>
