@@ -45,31 +45,28 @@ img {
 <script>
 
 // =====================
-// 👇 単語辞書（ここを増やすと精度UP）
+// 単語辞書
 // =====================
 const words = [
-  "なんごとや","なんごとや","なんごとや","なんごとや","ニガ","は","差別用語","ちゃう","で","ニガ","って","いって","る","やつら","が","全員","レイシスト","や","で",
-  "ああ","すってん","ころりん","心","マザファカ","なり",
+  "なんごとや","なんごとや","なんごとや",
+  "ああ","すってん","ころりん",
   "これ","だから","中国人","は",
   "ちょっと","俺","野糞","行って","きま","す",
   "いや","それ","わかめ","やない","かーい",
   "俺","ヴァロ","して","く","る",
-  "破道","の","九十","ニガ","ニガ","ニガ","棺",
-  ];
-
-// =====================
-// 👇 画像（同じフォルダに置く）
-// =====================
-/*const images = [
-  "img1.jpg",
-  "img2.jpg",
-  "img3.jpg"
+  "破道","の","九十","棺"
 ];
-*/
-
 
 // =====================
-// マルコフ連鎖構築
+// 画像（使わないなら消してOK）
+// =====================
+const images = [
+  "img1.jpg",
+  "img2.jpg"
+];
+
+// =====================
+// マルコフ
 // =====================
 function buildMarkov(words) {
   const chain = {};
@@ -86,18 +83,12 @@ function buildMarkov(words) {
 }
 
 // =====================
-// 文章生成
+// 生成
 // =====================
 function generateSentence(chain, length = 8) {
   const keys = Object.keys(chain);
 
-  const startWords = ["今日","いや","まぁ","てか","なんか"];
-  let word = startWords[Math.floor(Math.random() * startWords.length)];
-
-  if (!chain[word]) {
-    word = keys[Math.floor(Math.random() * keys.length)];
-  }
-
+  let word = keys[Math.floor(Math.random() * keys.length)];
   let result = [word];
 
   for (let i = 0; i < length; i++) {
@@ -105,7 +96,6 @@ function generateSentence(chain, length = 8) {
 
     const nextWords = chain[word];
 
-    // 👇 ランダム性強化
     if (Math.random() < 0.25) {
       word = keys[Math.floor(Math.random() * keys.length)];
     } else {
@@ -114,16 +104,9 @@ function generateSentence(chain, length = 8) {
 
     result.push(word);
 
-    // 👇 早め終了
     if (Math.random() < 0.2) break;
   }
 
-  const endings = ["。","…","だわ","でしょ","なんよ"];
-  result.push(endings[Math.floor(Math.random() * endings.length)]);
-
-  return result.join("");
-}
-  // 文末をそれっぽくする
   const endings = ["。","…","だわ","でしょ","なんよ"];
   result.push(endings[Math.floor(Math.random() * endings.length)]);
 
@@ -139,9 +122,11 @@ function generate() {
 
   document.getElementById("output").innerText = sentence;
 
-  // 画像ランダム表示
-  const img = images[Math.floor(Math.random() * images.length)];
-  document.getElementById("photo").src = img;
+  // 画像（使う場合のみ）
+  if (images.length > 0) {
+    const img = images[Math.floor(Math.random() * images.length)];
+    document.getElementById("photo").src = img;
+  }
 }
 
 </script>
